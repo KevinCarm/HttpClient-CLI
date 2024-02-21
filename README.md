@@ -18,10 +18,10 @@ Instructions.
 ```
 
 ## Parameters
-- u Api URL
-- m Method (GET, POST, PUT, DELETE)
-- b Body
-- h Header
+- -u Api URL
+- -m Method (GET, POST, PUT, DELETE)
+- -b Body
+- -h Header
 
 ### Example
 
