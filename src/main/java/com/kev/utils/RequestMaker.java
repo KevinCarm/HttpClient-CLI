@@ -32,6 +32,7 @@ public class RequestMaker {
                                 : "")
                 .setUrl(parameters.get(parameters.indexOf("-u") + 1))
                 .setHeaders(headers)
+                .setBody(parameters.contains("-b") ? parameters.get(parameters.indexOf("-b") + 1) : "")
                 .build();
         System.out.println(client.sendRequest());
     }

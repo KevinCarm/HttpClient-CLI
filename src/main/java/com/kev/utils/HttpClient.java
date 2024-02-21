@@ -3,8 +3,10 @@ package com.kev.utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -61,7 +63,6 @@ public class HttpClient {
         HttpsURLConnection connection = (HttpsURLConnection) _url.openConnection();
         connection.setRequestMethod(!this.method.isEmpty() ? this.method : "GET");
         connection.setDoOutput(!this.method.equals("GET"));
-        connection.setRequestProperty("Content-Type", "application/json");
         if (!this.headers.isEmpty()) {
             for (String header : this.headers) {
                 String[] values = header.split(":");
@@ -71,7 +72,7 @@ public class HttpClient {
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(getSupplier(connection));
         while (!future.isDone()) {
-            Thread.sleep(100);
+            Thread.sleep(50);
             System.out.print(".");
         }
         System.out.println();
@@ -81,6 +82,13 @@ public class HttpClient {
     private Supplier<String> getSupplier(HttpURLConnection connection) {
         return () -> {
             try {
+                if (!body.isEmpty()) {
+                    try (OutputStream os = connection.getOutputStream()) {
+                        byte[] input = this.body.getBytes(StandardCharsets.UTF_8);
+                        os.write(input, 0, input.length);
+                    }
+                }
+
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(connection.getInputStream()));
                 String inputLine;
