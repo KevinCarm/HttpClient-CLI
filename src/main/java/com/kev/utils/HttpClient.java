@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -15,17 +16,20 @@ public class HttpClient {
     private final String url;
     private final String method;
     private final String body;
+    private final List<String> headers;
 
     private HttpClient(HttpClientBuilder builder) {
         this.body = builder.body;
         this.method = builder.method;
         this.url = builder.url;
+        this.headers = builder.headers;
     }
 
     public static class HttpClientBuilder {
         private String url;
         private String method;
         private String body;
+        private List<String> headers;
 
         public HttpClient build() {
             return new HttpClient(this);
@@ -45,6 +49,11 @@ public class HttpClient {
             this.method = method;
             return this;
         }
+
+        public HttpClientBuilder setHeaders(List<String> headers) {
+            this.headers = headers;
+            return this;
+        }
     }
 
     public String sendRequest() throws IOException, InterruptedException {
@@ -53,6 +62,12 @@ public class HttpClient {
         connection.setRequestMethod(!this.method.isEmpty() ? this.method : "GET");
         connection.setDoOutput(!this.method.equals("GET"));
         connection.setRequestProperty("Content-Type", "application/json");
+        if (!this.headers.isEmpty()) {
+            for (String header : this.headers) {
+                String[] values = header.split(":");
+                connection.setRequestProperty(values[0], values[1]);
+            }
+        }
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(getSupplier(connection));
         while (!future.isDone()) {
@@ -82,21 +97,13 @@ public class HttpClient {
         };
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
     @Override
     public String toString() {
-        return "HttpClient [url=" + url + ", method=" + method + ", body=" + body + "]";
+        return "HttpClient{" +
+                "url='" + url + '\'' +
+                ", method='" + method + '\'' +
+                ", body='" + body + '\'' +
+                ", headers=" + headers +
+                '}';
     }
-
 }
